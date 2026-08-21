@@ -17,9 +17,8 @@ Running `report_generator.py` creates:
   script refuses to run if this file is absent or invalid; it never creates a
   replacement model.
 - The model must be the bias-aware model trained in phase 3, including the
-  fairness work completed during model training. Set `MILESTONE3_MODEL` only
-  when the authentic artifact is stored under a different path; the default
-  remains `models/churn_pipeline.pkl` for assignment grading.
+  fairness work completed during model training. It must be stored at
+  `models/churn_pipeline.pkl` for assignment grading.
 
 ## Setup
 
@@ -68,13 +67,9 @@ heatmap. Custom column names can be supplied with `region_col` and
 synthetic model outputs.
 
 When the script is run directly, it loads engineered/model-training data from
-the path in `MILESTONE2_DATA`, or from one of these repository paths:
-`data/engineered_features.csv`, `data/engineered_dataset.csv`,
-`data/X_engineered.csv`, `data/model_dataset.csv`,
-`data/churn_model_dataset.csv`, `data/processed/engineered_features.csv`, or
-`data/processed/model_dataset.csv`. The data must be copied from the earlier
-milestones and include `region` and `financial_strain`; the script does not
-create demo rows.
+`data/processed/engineered_features.csv`. The data must be copied from the
+earlier milestones and include `region` plus either `financial_strain` or
+`debt_to_income`; the script does not create demo rows.
 
 ## Phase 3 Inputs
 

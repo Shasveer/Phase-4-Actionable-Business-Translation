@@ -1,7 +1,6 @@
 """Generate an ethical, ROI-focused churn intervention report."""
 
 from pathlib import Path
-import os
 import pickle
 
 import matplotlib.pyplot as plt
@@ -179,46 +178,31 @@ def _load_model(path):
         ) from error
 
 
-def _model_path(root):
-    """Resolve the authentic bias-aware Milestone 3 model artifact."""
-    configured_path = os.environ.get("MILESTONE3_MODEL")
-    return Path(configured_path) if configured_path else root / "models" / "churn_pipeline.pkl"
+def _load_data(path):
+    """Load the committed engineered dataset without inventing demonstration rows."""
+    if not path.is_file():
+        raise FileNotFoundError(
+            f"Required Milestone 2 dataset is missing: {path}. "
+            "Add data/processed/engineered_features.csv before running the script."
+        )
+    data = pd.read_csv(path)
+    if "financial_strain" not in data and "debt_to_income" in data:
+        data["financial_strain"] = pd.to_numeric(
+            data["debt_to_income"], errors="coerce"
+        ).clip(0, 1)
+    return data
 
 
-def _load_data(root):
-    """Load engineered/model-training data rather than inventing demonstration rows."""
-    candidates = []
-    if os.environ.get("MILESTONE2_DATA"):
-        candidates.append(Path(os.environ["MILESTONE2_DATA"]))
-    candidates.extend(
-        [
-            root / "data" / "engineered_features.csv",
-            root / "data" / "engineered_dataset.csv",
-            root / "data" / "X_engineered.csv",
-            root / "data" / "model_dataset.csv",
-            root / "data" / "churn_model_dataset.csv",
-            root / "data" / "processed" / "engineered_features.csv",
-            root / "data" / "processed" / "model_dataset.csv",
-        ]
-    )
-    for candidate in candidates:
-        if candidate.is_file():
-            data = pd.read_csv(candidate)
-            if "financial_strain" not in data and "debt_to_income" in data:
-                data["financial_strain"] = pd.to_numeric(
-                    data["debt_to_income"], errors="coerce"
-                ).clip(0, 1)
-            return data
-    locations = ", ".join(str(candidate) for candidate in candidates)
-    raise FileNotFoundError(
-        "Milestone 2 engineered data is missing. Set MILESTONE2_DATA to the "
-        f"real CSV path or add it at one of: {locations}"
-    )
-
-
-if __name__ == "__main__":
+def main():
+    """Generate reports from the authentic phase 2 and phase 3 artifacts."""
     root = Path(__file__).resolve().parent
-    generator = ReportGenerator(_load_model(_model_path(root)), _load_data(root))
+    model_path = root / "models" / "churn_pipeline.pkl"
+    data_path = root / "data" / "processed" / "engineered_features.csv"
+    generator = ReportGenerator(_load_model(model_path), _load_data(data_path))
     generator.generate_executive_summary(root / "reports" / "executive_summary.md")
     generator.generate_churn_heatmap(root / "reports" / "churn_heatmap.png")
     print(generator)
+
+
+if __name__ == "__main__":
+    main()
