@@ -13,9 +13,9 @@ Running `report_generator.py` creates:
   Solution, ROI, and Next Steps.
 - `reports/churn_heatmap.png`: mean predicted churn probability by region and
   financial-strain quartile, with an ethical disclaimer displayed on the chart.
-- `models/churn_pipeline.pkl`: the Milestone 3 model artifact. If it is absent,
-  the script creates a deterministic fallback model so the repository can be
-  executed from a clean checkout.
+- `models/churn_pipeline.pkl`: the original Milestone 3 model artifact. The
+  script refuses to run if this file is absent or invalid; it never creates a
+  replacement model.
 
 ## Setup
 
@@ -59,9 +59,15 @@ generator.generate_executive_summary("reports/executive_summary.md")
 
 The DataFrame must contain `region` and `financial_strain` columns for the
 heatmap. Custom column names can be supplied with `region_col` and
-`strain_col`. The model should expose a scikit-learn-compatible
-`predict_proba(X)` method; if prediction fails, the generator uses a bounded
-strain-based estimate for visualization rather than stopping report creation.
+`strain_col`. The model must expose a scikit-learn-compatible
+`predict_proba(X)` method. Prediction failures are not silently converted into
+synthetic model outputs.
+
+When the script is run directly, it loads engineered Milestone 2 data from the
+path in `MILESTONE2_DATA`, or from one of these repository paths:
+`data/engineered_features.csv`, `data/X_engineered.csv`, or
+`data/processed/engineered_features.csv`. The data must be copied from the
+earlier milestone; the script does not create demo rows.
 
 ## ROI Methodology
 
@@ -110,7 +116,8 @@ stakeholder perspectives:
 
 - [ ] Repository is public.
 - [ ] `report_generator.py` is in the repository root.
-- [ ] `models/churn_pipeline.pkl` is present after execution.
+- [ ] The original Milestone 3 `models/churn_pipeline.pkl` is present before execution.
+- [ ] Milestone 2 engineered data is present, or `MILESTONE2_DATA` points to it.
 - [ ] `reports/executive_summary.md` is generated.
 - [ ] `reports/churn_heatmap.png` is generated and includes regional labels.
 - [ ] The summary contains the required ROI, CFO quote, and ethical warning.

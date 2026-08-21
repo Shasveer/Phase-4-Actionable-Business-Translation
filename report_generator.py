@@ -1,6 +1,7 @@
 """Generate an ethical, ROI-focused churn intervention report."""
 
 from pathlib import Path
+import os
 import pickle
 
 import matplotlib.pyplot as plt
@@ -18,15 +19,6 @@ INCLUSION_QUOTE = (
     "Per Head of Inclusion: Relief must be measured by uptake and outcomes in "
     "underserved regions, not only by aggregate profit."
 )
-
-
-class _FallbackModel:
-    """Small deterministic model used when the Milestone 3 artifact is absent."""
-
-    def predict_proba(self, X):
-        strain = pd.to_numeric(X.get("financial_strain", 0.5), errors="coerce").fillna(0.5)
-        risk = (0.12 + 0.68 * strain).clip(0.01, 0.99)
-        return pd.DataFrame({0: 1 - risk, 1: risk}).to_numpy()
 
 
 class ReportGenerator:
@@ -176,31 +168,46 @@ class ReportGenerator:
 
 
 def _load_model(path):
+    if not path.is_file():
+        raise FileNotFoundError(
+            f"Required Milestone 3 model is missing: {path}. "
+            "Copy the real churn_pipeline.pkl into models/ before running the script."
+        )
     try:
         with path.open("rb") as model_file:
             return pickle.load(model_file)
-    except (FileNotFoundError, EOFError, OSError, pickle.PickleError, AttributeError, ImportError):
-        model = _FallbackModel()
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with path.open("wb") as model_file:
-            pickle.dump(model, model_file)
-        return model
+    except (EOFError, OSError, pickle.PickleError, AttributeError, ImportError) as error:
+        raise RuntimeError(
+            f"Unable to load the Milestone 3 model at {path}. "
+            "Ensure it is the original, valid churn_pipeline.pkl artifact."
+        ) from error
 
 
-def _demo_data():
-    return pd.DataFrame(
-        {
-            "region": ["Township", "Township", "Metro", "Rural", "Metro", "Rural", "Township", "Metro"],
-            "financial_strain": [0.9, 0.75, 0.3, 0.55, 0.2, 0.65, 0.82, 0.4],
-        }
+def _load_data(root):
+    """Load engineered Milestone 2 data rather than inventing demonstration rows."""
+    candidates = []
+    if os.environ.get("MILESTONE2_DATA"):
+        candidates.append(Path(os.environ["MILESTONE2_DATA"]))
+    candidates.extend(
+        [
+            root / "data" / "engineered_features.csv",
+            root / "data" / "X_engineered.csv",
+            root / "data" / "processed" / "engineered_features.csv",
+        ]
+    )
+    for candidate in candidates:
+        if candidate.is_file():
+            return pd.read_csv(candidate)
+    locations = ", ".join(str(candidate) for candidate in candidates)
+    raise FileNotFoundError(
+        "Milestone 2 engineered data is missing. Set MILESTONE2_DATA to the "
+        f"real CSV path or add it at one of: {locations}"
     )
 
 
 if __name__ == "__main__":
     root = Path(__file__).resolve().parent
-    generator = ReportGenerator(
-        _load_model(root / "models" / "churn_pipeline.pkl"), _demo_data()
-    )
+    generator = ReportGenerator(_load_model(root / "models" / "churn_pipeline.pkl"), _load_data(root))
     generator.generate_executive_summary(root / "reports" / "executive_summary.md")
     generator.generate_churn_heatmap(root / "reports" / "churn_heatmap.png")
     print(generator)
