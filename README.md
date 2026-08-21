@@ -78,14 +78,13 @@ repository:
 
 ```text
 models/churn_pipeline.pkl              # bias-aware trained pipeline
-data/engineered_features.csv           # engineered features used by the model
-data/model_dataset.csv                 # optional name for the same model dataset
+data/processed/engineered_features.csv # engineered features used by the model
 ```
 
-Only the dataset path that exists is loaded. Keep the actual phase 3 training
-dataset and bias-aware pipeline together with the report code so the heatmap
-and executive conclusions can be reproduced and audited. A missing model or
-dataset causes a clear error rather than producing a synthetic report.
+Keep the actual phase 3 training dataset and bias-aware pipeline together with
+the report code so the heatmap and executive conclusions can be reproduced and
+audited. A missing model or dataset causes a clear error rather than producing
+a synthetic report.
 
 ## ROI Methodology
 
@@ -135,7 +134,7 @@ stakeholder perspectives:
 - [ ] Repository is public.
 - [ ] `report_generator.py` is in the repository root.
 - [ ] The original bias-aware Milestone 3 `models/churn_pipeline.pkl` is present before execution.
-- [ ] Milestone 2 engineered/model-training data is present, or `MILESTONE2_DATA` points to it.
+- [ ] Milestone 2 engineered/model-training data is present at `data/processed/engineered_features.csv`.
 - [ ] `reports/executive_summary.md` is generated.
 - [ ] `reports/churn_heatmap.png` is generated and includes regional labels.
 - [ ] The summary contains the required ROI, CFO quote, and ethical warning.
