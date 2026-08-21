@@ -81,12 +81,8 @@ class ReportGenerator:
         return self._interventions
 
     def _churn_probability(self):
-        try:
-            probabilities = self.model.predict_proba(self.X)
-            return pd.Series(probabilities[:, -1], index=self.X.index, dtype=float).clip(0, 1)
-        except (AttributeError, KeyError, TypeError, ValueError, IndexError):
-            strain = pd.to_numeric(self.X[self.strain_col], errors="coerce").fillna(0.5)
-            return (0.12 + 0.68 * strain).clip(0.01, 0.99)
+        probabilities = self.model.predict_proba(self.X)
+        return pd.Series(probabilities[:, -1], index=self.X.index, dtype=float).clip(0, 1)
 
     def generate_churn_heatmap(self, output_path="churn_heatmap.png"):
         """Plot mean churn probability by region and financial-strain quartile."""
@@ -207,7 +203,12 @@ def _load_data(root):
     )
     for candidate in candidates:
         if candidate.is_file():
-            return pd.read_csv(candidate)
+            data = pd.read_csv(candidate)
+            if "financial_strain" not in data and "debt_to_income" in data:
+                data["financial_strain"] = pd.to_numeric(
+                    data["debt_to_income"], errors="coerce"
+                ).clip(0, 1)
+            return data
     locations = ", ".join(str(candidate) for candidate in candidates)
     raise FileNotFoundError(
         "Milestone 2 engineered data is missing. Set MILESTONE2_DATA to the "
