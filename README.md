@@ -16,6 +16,10 @@ Running `report_generator.py` creates:
 - `models/churn_pipeline.pkl`: the original Milestone 3 model artifact. The
   script refuses to run if this file is absent or invalid; it never creates a
   replacement model.
+- The model must be the bias-aware model trained in phase 3, including the
+  fairness work completed during model training. Set `MILESTONE3_MODEL` only
+  when the authentic artifact is stored under a different path; the default
+  remains `models/churn_pipeline.pkl` for assignment grading.
 
 ## Setup
 
@@ -63,11 +67,30 @@ heatmap. Custom column names can be supplied with `region_col` and
 `predict_proba(X)` method. Prediction failures are not silently converted into
 synthetic model outputs.
 
-When the script is run directly, it loads engineered Milestone 2 data from the
-path in `MILESTONE2_DATA`, or from one of these repository paths:
-`data/engineered_features.csv`, `data/X_engineered.csv`, or
-`data/processed/engineered_features.csv`. The data must be copied from the
-earlier milestone; the script does not create demo rows.
+When the script is run directly, it loads engineered/model-training data from
+the path in `MILESTONE2_DATA`, or from one of these repository paths:
+`data/engineered_features.csv`, `data/engineered_dataset.csv`,
+`data/X_engineered.csv`, `data/model_dataset.csv`,
+`data/churn_model_dataset.csv`, `data/processed/engineered_features.csv`, or
+`data/processed/model_dataset.csv`. The data must be copied from the earlier
+milestones and include `region` and `financial_strain`; the script does not
+create demo rows.
+
+## Phase 3 Inputs
+
+The phase 4 report depends on these phase 3 assets being committed to the
+repository:
+
+```text
+models/churn_pipeline.pkl              # bias-aware trained pipeline
+data/engineered_features.csv           # engineered features used by the model
+data/model_dataset.csv                 # optional name for the same model dataset
+```
+
+Only the dataset path that exists is loaded. Keep the actual phase 3 training
+dataset and bias-aware pipeline together with the report code so the heatmap
+and executive conclusions can be reproduced and audited. A missing model or
+dataset causes a clear error rather than producing a synthetic report.
 
 ## ROI Methodology
 
@@ -116,8 +139,8 @@ stakeholder perspectives:
 
 - [ ] Repository is public.
 - [ ] `report_generator.py` is in the repository root.
-- [ ] The original Milestone 3 `models/churn_pipeline.pkl` is present before execution.
-- [ ] Milestone 2 engineered data is present, or `MILESTONE2_DATA` points to it.
+- [ ] The original bias-aware Milestone 3 `models/churn_pipeline.pkl` is present before execution.
+- [ ] Milestone 2 engineered/model-training data is present, or `MILESTONE2_DATA` points to it.
 - [ ] `reports/executive_summary.md` is generated.
 - [ ] `reports/churn_heatmap.png` is generated and includes regional labels.
 - [ ] The summary contains the required ROI, CFO quote, and ethical warning.

@@ -183,16 +183,26 @@ def _load_model(path):
         ) from error
 
 
+def _model_path(root):
+    """Resolve the authentic bias-aware Milestone 3 model artifact."""
+    configured_path = os.environ.get("MILESTONE3_MODEL")
+    return Path(configured_path) if configured_path else root / "models" / "churn_pipeline.pkl"
+
+
 def _load_data(root):
-    """Load engineered Milestone 2 data rather than inventing demonstration rows."""
+    """Load engineered/model-training data rather than inventing demonstration rows."""
     candidates = []
     if os.environ.get("MILESTONE2_DATA"):
         candidates.append(Path(os.environ["MILESTONE2_DATA"]))
     candidates.extend(
         [
             root / "data" / "engineered_features.csv",
+            root / "data" / "engineered_dataset.csv",
             root / "data" / "X_engineered.csv",
+            root / "data" / "model_dataset.csv",
+            root / "data" / "churn_model_dataset.csv",
             root / "data" / "processed" / "engineered_features.csv",
+            root / "data" / "processed" / "model_dataset.csv",
         ]
     )
     for candidate in candidates:
@@ -207,7 +217,7 @@ def _load_data(root):
 
 if __name__ == "__main__":
     root = Path(__file__).resolve().parent
-    generator = ReportGenerator(_load_model(root / "models" / "churn_pipeline.pkl"), _load_data(root))
+    generator = ReportGenerator(_load_model(_model_path(root)), _load_data(root))
     generator.generate_executive_summary(root / "reports" / "executive_summary.md")
     generator.generate_churn_heatmap(root / "reports" / "churn_heatmap.png")
     print(generator)
